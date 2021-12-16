@@ -105,6 +105,7 @@ type Script struct {
 	Source  Type
 	Content string
 	Line    int
+	Created bool
 }
 
 func (t *Type) String() string {
@@ -151,6 +152,21 @@ func GatherJS(url string, domain string) (code string) {
 
 	}
 	return code
+}
+
+//Search for js in src attribute and return the Script struct associated if found
+func FindJSinSrc(token html.Token, gather bool, domain string, line int) (s Script) {
+	src := FindSrc(token)
+	if src != "" {
+		if gather {
+			//retrieve JS from src attribute
+			code := GatherJS(src, domain)
+			s = Script{Line: line, Source: FromSrc, Content: code, Created: true}
+		} else {
+			s = Script{Line: line, Source: FromSrc, Content: src, Created: true}
+		}
+	}
+	return s
 }
 
 /////////////TAG HANDLING//////////////
@@ -344,16 +360,8 @@ func main() {
 			isScript := token.Data == "script"
 			if isScript {
 				//src finder
-				src := FindSrc(token)
-				if src != "" {
-					var s Script
-					if *gatherSrc {
-						//retrieve JS from src attribute
-						code := GatherJS(src, *domain)
-						s = Script{Line: line, Source: FromSrc, Content: code}
-					} else {
-						s = Script{Line: line, Source: FromSrc, Content: src}
-					}
+				s := FindJSinSrc(token, *gatherSrc, *domain, line)
+				if s.Created {
 					scripts = append(scripts, s)
 				}
 				break
@@ -363,7 +371,7 @@ func main() {
 			contents := FindJSEvent(token)
 			if len(contents) > 0 {
 				for i := 0; i < len(contents); i++ {
-					s := Script{Line: line, Source: FromEvent, Content: contents[i]}
+					s := Script{Line: line, Source: FromEvent, Content: contents[i], Created: true}
 					scripts = append(scripts, s)
 				}
 				break
@@ -374,16 +382,8 @@ func main() {
 			isScript := token.Data == "script"
 			if isScript {
 				//src finder
-				src := FindSrc(token)
-				if src != "" {
-					var s Script
-					if *gatherSrc {
-						//retrieve JS from src attribute
-						code := GatherJS(src, *domain)
-						s = Script{Line: line, Source: FromSrc, Content: code}
-					} else {
-						s = Script{Line: line, Source: FromSrc, Content: src}
-					}
+				s := FindJSinSrc(token, *gatherSrc, *domain, line)
+				if s.Created {
 					scripts = append(scripts, s)
 					break
 				}
