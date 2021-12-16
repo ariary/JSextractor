@@ -1,2 +1,2 @@
-# gatherJS
-Gather all JavaScript code from html
+# JSextractor
+Gather all JavaScript code from html webpages
