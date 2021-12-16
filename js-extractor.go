@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -24,7 +26,7 @@ var (
 	Warn = Yellow
 	Evil = Red
 	Good = Green
-	Code = Cyan
+	Code = Blue
 )
 
 var (
@@ -36,7 +38,7 @@ var (
 	Magenta       = Color("\033[1;35m%s\033[0m")
 	Teal          = Color("\033[1;36m%s\033[0m")
 	White         = Color("\033[1;37m%s\033[0m")
-	Cyan          = Color("\033[1;96m%s\033[0m")
+	Blue          = Color("\033[1;96m%s\033[0m")
 	Underlined    = Color("\033[4m%s\033[24m")
 	Bold          = Color("\033[1m%s\033[0m")
 	Italic        = Color("\033[3m%s\033[0m")
@@ -73,6 +75,22 @@ func GetBeginLinesIndex(text []byte) (result []int) {
 	return result
 }
 
+//Return body of url after performing GET request
+func Fetch(url string) (body string) {
+	resp, err := http.Get(url)
+	if err != nil {
+		os.Stderr.WriteString("Failed fetching url: " + url)
+	}
+	//We Read the response body on the line below.
+	bodyB, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		os.Stderr.WriteString("Failed reading body of GET response from: " + url)
+	}
+	//Convert the body to type string
+	body = string(bodyB)
+	return body
+}
+
 /////////////////SCRIPT////////////////
 ///////////////////////////////////////
 const (
@@ -103,7 +121,7 @@ func (t *Type) String() string {
 
 func PrintScript(s Script) {
 	l := log.New(os.Stderr, "", 0) //write to stderr to don't have it if you redirect output
-	info := Bold(Red(s.Line)) + " : " + Cyan(s.Source.String())
+	info := Bold(Red(s.Line)) + " : " + Blue(s.Source.String())
 	l.Println(info)
 	if s.Content != "" {
 		output := s.Content //TODO: pass s.Content to js beautifier
@@ -119,6 +137,20 @@ func GetScriptTagType(token html.Token) string {
 		}
 	}
 	return ""
+}
+
+//Retrieve JS code from url (src attribut of script tag). use https by default. If url i s a relative path fetch [domain]/[url]
+func GatherJS(url string, domain string) (code string) {
+	switch {
+	case strings.HasPrefix(url, "//"):
+		code = Fetch("https:" + url)
+	case strings.HasPrefix(url, "http"): //handle also https
+		code = Fetch(url)
+	default: //realtive
+		code = Fetch(domain + "/" + url)
+
+	}
+	return code
 }
 
 /////////////TAG HANDLING//////////////
@@ -263,6 +295,17 @@ func FindSrc(token html.Token) string {
 ///////////////////MAIN////////////////
 ///////////////////////////////////////
 func main() {
+	// FLAG HANDLING
+	gatherSrc := flag.Bool("gather-src", false, "Gather javascript code from script tag with src attribute. You must set domain if you enabled it (-d flag)")
+	domain := flag.String("d", "", "Domain hosting the HTML page (eg https://example.net")
+
+	flag.Parse()
+
+	if *gatherSrc && (*domain == "") {
+		log.Fatal("You must set domain if you enabled gathering js code from src (-gather-src) (-d flag)")
+	}
+
+	//RUN
 	offset := 0 //snoop line
 	line := 0
 
@@ -303,7 +346,14 @@ func main() {
 				//src finder
 				src := FindSrc(token)
 				if src != "" {
-					s := Script{Line: line, Source: FromSrc, Content: src}
+					var s Script
+					if *gatherSrc {
+						//retrieve JS from src attribute
+						code := GatherJS(src, *domain)
+						s = Script{Line: line, Source: FromSrc, Content: code}
+					} else {
+						s = Script{Line: line, Source: FromSrc, Content: src}
+					}
 					scripts = append(scripts, s)
 				}
 				break
@@ -326,7 +376,14 @@ func main() {
 				//src finder
 				src := FindSrc(token)
 				if src != "" {
-					s := Script{Line: line, Source: FromSrc, Content: src}
+					var s Script
+					if *gatherSrc {
+						//retrieve JS from src attribute
+						code := GatherJS(src, *domain)
+						s = Script{Line: line, Source: FromSrc, Content: code}
+					} else {
+						s = Script{Line: line, Source: FromSrc, Content: src}
+					}
 					scripts = append(scripts, s)
 					break
 				}
