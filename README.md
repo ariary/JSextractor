@@ -1,6 +1,6 @@
 # JSextractor
 
-Gather all JavaScript code from html webpages from command line.
+Gather all JavaScript code of html webpages from command line.
 `jse` take input from `stdin`, search for JavaScript in `<script>` tag (in `src` attribute and code) and in event handlers.
 
 * [Gather JavaScript](#basic-usage)
