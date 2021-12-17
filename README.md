@@ -1,4 +1,10 @@
-# JSextractor
+<div align="center">
+ <h1> JSextractor</h1>  
+<img src="https://github.com/ariary/JSextractor/blob/main/img/jse-small.png">
+  <p><strong>{ <a href="#install">Install it</a> ; <a href="#basic-usage">Use it</a> } </strong></p>
+</div>
+
+----
 
 Gather all JavaScript code of html webpages from command line.
 `jse` take input from `stdin`, search for JavaScript in `<script>` tag (in `src` attribute and code) and in event handlers.
