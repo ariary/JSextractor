@@ -66,3 +66,4 @@ mv jse $HOME/.local/bin/
 ## Enhancement 🛣️
 
 * Line counter is not working perfectly and must be improved
+* Propose a TUI to browse/expand code (surely List view using `tview`)
