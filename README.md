@@ -46,7 +46,7 @@ Also, all informative logs (line and source) are output to `stderr` to keep only
 
 ## Install
 
-### curl
+### from release
 
 ```
 curl -lO -L https://github.com/ariary/JSextractor/releases/latest/download/jse
