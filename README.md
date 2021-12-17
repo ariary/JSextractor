@@ -5,6 +5,9 @@
 </div>
 
 
+## Demo
+|![demo](https://github.com/ariary/JSextractor/blob/main/img/jse.gif)|
+|:---:|
 ## Usage
 Gather all JavaScript code of html webpages from command line.
 `jse` take input from `stdin`, search for JavaScript in `<script>` tag (in `src` attribute and code) and in event handlers.
