@@ -28,8 +28,9 @@ curl [url] | jse
 ### Output js code into file
 
 This could be useful for performing further actions later on JavaScript  like scanning it or beautifying it. But in this case, the output **must** be a valid script:
-`cat [html_file] | jse -gather-src -d [domain_of_html]`
-
+```
+cat [html_file] | jse -gather-src -d [domain_of_html]
+```
 We use  `-gather-src` to retrieve code from `src` attribute (fetching the code). Otherwise it would return only the URL corresponding to the `src` value and thus making the output a non-valid JavaScript script.
 When we use `-gather-src` we must also define the domain from which we got the html page, (this is used to fetch script hosting by te same site *e.g.* `src=/this/is/a/path.js`)
 
