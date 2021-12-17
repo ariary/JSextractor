@@ -22,7 +22,7 @@ cat [html_file] | jse
 
 * Alternatively, you could gather it following a curl command:
 ```shell
-curl [url] | jse
+curl -s [url] | jse
 ```
 
 ### Output js code into file
