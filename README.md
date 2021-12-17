@@ -1,11 +1,12 @@
 <div align="center">
  <h1> JSextractor</h1>  
 <img src="https://github.com/ariary/JSextractor/blob/main/img/jse-small.png">
-  <p><strong>{ <a href="#install">Install it</a> ; <a href="#basic-usage">Use it</a> } </strong></p>
+  <p><strong>{ <a href="#install">Install it</a> ; <a href="#usage">Use it</a> } </strong></p>
 </div>
 
 ----
 
+## Usage
 Gather all JavaScript code of html webpages from command line.
 `jse` take input from `stdin`, search for JavaScript in `<script>` tag (in `src` attribute and code) and in event handlers.
 
@@ -13,7 +14,7 @@ Gather all JavaScript code of html webpages from command line.
 * [Gather JavaScript for further analysis on it](#output-js-code-into-file)
 * [Gather JavaScript from specific source](#restrict-harvest)
 
-## Basic usage
+### Basic usage
 
 * Retrieve Javascript from an offline HTML file:
 ```shell
@@ -25,7 +26,7 @@ cat [html_file] | jse
 curl [url] | jse
 ```
 
-## Output js code into file
+### Output js code into file
 
 This could be useful for performing further actions later on JavaScript  like scanning it or beautifying it. But in this case, the output **must** be a valid script:
 `cat [html_file] | jse -gather-src -d [domain_of_html]`
@@ -35,7 +36,7 @@ When we use `-gather-src` we must also define the domain from which we got the h
 
 Also, all informative logs (line and source) are output to `stderr` to keep only js code in `stdout`
 
-## Restrict harvest
+### Restrict harvest
 
 `jse` search for js code from 3 sources by default. Sometimes, you only want code from a specific source. In this case you could disable other source gathering:
 * `-ds`: don't look for js in src attribute of `<script>` tag
