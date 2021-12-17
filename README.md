@@ -1,7 +1,9 @@
 <div align="center">
  <h1> JSextractor</h1>  
 <img src="https://github.com/ariary/JSextractor/blob/main/img/jse-small.png">
-  <p><strong>{ <a href="#install">Install it</a> ; <a href="#usage">Use it</a> } </strong></p>
+ <h4> JSextractor a command line utility to gather JavaScript from webpages </h4>
+ <p> Gather all JavaScript code of html webpages from command line by supplying them in stdin. JSextractor search for JavaScript in <code><script></code> tag (<code>src</code>  attribute or inline code) and in event handlers. 
+  <p><strong><code>{ <a href="#install">Install it</a> ; <a href="#usage">Use it</a> } </code></strong></p>
 </div>
 
 
@@ -9,9 +11,6 @@
 |![demo](https://github.com/ariary/JSextractor/blob/main/img/jse.gif)|
 |:---:|
 ## Usage
-Gather all JavaScript code of html webpages from command line.
-`jse` take input from `stdin`, search for JavaScript in `<script>` tag (in `src` attribute and code) and in event handlers.
-
 * [Gather JavaScript](#basic-usage)
 * [Gather JavaScript for further analysis on it](#output-js-code-into-file)
 * [Gather JavaScript from specific source](#restrict-harvest)
