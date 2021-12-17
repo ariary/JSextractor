@@ -41,7 +41,7 @@ Also, all informative logs (line and source) are output to `stderr` to keep only
 `jse` search for js code from 3 sources by default. Sometimes, you only want code from a specific source. In this case you could disable other source gathering:
 * `-ds`: don't look for js in src attribute of `<script>` tag
 * `-de`: don't look for js from event handler attributes
-* `-dt`: don't look for inline js of `<script>` tag"
+* `-dt`: don't look for inline js of `<script>` tag
 
 
 ## Install
