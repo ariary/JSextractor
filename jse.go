@@ -105,6 +105,7 @@ type Script struct {
 	Source  Type
 	Content string
 	Line    int
+	Created bool
 }
 
 func (t *Type) String() string {
@@ -148,49 +149,24 @@ func GatherJS(url string, domain string) (code string) {
 		code = Fetch(url)
 	default: //realtive
 		code = Fetch(domain + "/" + url)
+
 	}
 	return code
 }
 
 //Search for js in src attribute and return the Script struct associated if found
-func FindJSinSrc(token html.Token, gather bool, domain string, line int) (s Script, found bool) {
+func FindJSinSrc(token html.Token, gather bool, domain string, line int) (s Script) {
 	src := FindSrc(token)
 	if src != "" {
 		if gather {
 			//retrieve JS from src attribute
 			code := GatherJS(src, domain)
-			s = Script{Line: line, Source: FromSrc, Content: code}
+			s = Script{Line: line, Source: FromSrc, Content: code, Created: true}
 		} else {
-			s = Script{Line: line, Source: FromSrc, Content: src}
+			s = Script{Line: line, Source: FromSrc, Content: src, Created: true}
 		}
-		found = true
 	}
-	return s, found
-}
-
-//Search for js in attribute event handler and return the Scripts struct associated if found
-func FindJSinAttr(token html.Token, line int) (scripts []Script, found bool) {
-
-	contents := FindJSEvent(token)
-	if len(contents) > 0 {
-		for i := 0; i < len(contents); i++ {
-			s := Script{Line: line, Source: FromEvent, Content: contents[i]}
-			scripts = append(scripts, s)
-		}
-		found = true
-	}
-	return scripts, found
-}
-
-//Search for js in attribute event handler and return the Scripts struct associated if found
-func FindJSinTag(token html.Token, line int, tokenizer *html.Tokenizer) (s Script, found bool) {
-	sType := GetScriptTagType(token)
-	if sType == "" || strings.Contains(sType, "text/javascript") { //type="text/javascript;version=1.8" before firefox 59 was also accepted
-		tokenizer.Next()
-		s = Script{Line: line, Source: FromText, Content: string(tokenizer.Text())}
-		found = true
-	}
-	return s, true
+	return s
 }
 
 /////////////TAG HANDLING//////////////
@@ -337,8 +313,10 @@ func FindSrc(token html.Token) string {
 func main() {
 	// FLAG HANDLING
 	gatherSrc := flag.Bool("gather-src", false, "Gather javascript code from script tag with src attribute. You must set domain if you enabled it (-d flag)")
-	domain := flag.String("d", "", "Domain hosting the HTML page (eg https://example.net")
-
+	domain := flag.String("u", "", "Domain hosting the HTML page (eg https://example.net)")
+	disableSrc := flag.Bool("ds", false, "Disable gathering javascript code from src attribute of <script> tag")
+	disableEvent := flag.Bool("de", false, "Disable gathering javascript code from event handler attributes")
+	disableTag := flag.Bool("dt", false, "Disable gathering javascript code within <script> tag")
 	flag.Parse()
 
 	if *gatherSrc && (*domain == "") {
@@ -346,15 +324,18 @@ func main() {
 	}
 
 	//RUN
-	offset := 0 //snoop line
+	//Snoop line
+	offset := 0
 	line := 0
 
+	//Read stdin twice
 	var buf bytes.Buffer
-	tee := io.TeeReader(os.Stdin, &buf) //Read stdin twice
+	tee := io.TeeReader(os.Stdin, &buf)
+
 	scripts := []Script{}
 	tokenizer := html.NewTokenizer(&buf)
 
-	//Get lines begin index
+	//Get lines starts
 	page, _ := ioutil.ReadAll(tee)
 	begins := GetBeginLinesIndex(page)
 
@@ -362,8 +343,9 @@ func main() {
 
 	for {
 		tokenType := tokenizer.Next()
-		offset += len(tokenizer.Raw())
 
+		//Determine line number
+		offset += len(tokenizer.Raw())
 		for i := 0; i < len(begins); i++ {
 			if offset > begins[i] {
 				line = i
@@ -371,6 +353,7 @@ func main() {
 		}
 		offset += len(tokenizer.Raw())
 
+		//HTML parsing
 		switch {
 		case tokenType == html.ErrorToken:
 			err := tokenizer.Err()
@@ -383,46 +366,60 @@ func main() {
 			token := tokenizer.Token()
 
 			isScript := token.Data == "script"
-			if isScript {
-				//src finder
-				s, found := FindJSinSrc(token, *gatherSrc, *domain, line)
-				if found {
+			if isScript && !*disableSrc {
+				//Find in src
+				s := FindJSinSrc(token, *gatherSrc, *domain, line)
+				if s.Created {
 					scripts = append(scripts, s)
 				}
 				break
 			}
-
-			//Find in attr
-			sL, found := FindJSinAttr(token, line)
-			if found {
-				scripts = append(scripts, sL...)
-				break
+			if !*disableEvent {
+				//Find in attr
+				contents := FindJSEvent(token)
+				if len(contents) > 0 {
+					for i := 0; i < len(contents); i++ {
+						s := Script{Line: line, Source: FromEvent, Content: contents[i], Created: true}
+						scripts = append(scripts, s)
+					}
+					break
+				}
 			}
+
 		case tokenType == html.StartTagToken:
 			token := tokenizer.Token()
 
 			isScript := token.Data == "script"
 			if isScript {
-				//src finder
-				s, found := FindJSinSrc(token, *gatherSrc, *domain, line)
-				if found {
-					scripts = append(scripts, s)
-					break
+				if !*disableSrc {
+					//Find in src
+					s := FindJSinSrc(token, *gatherSrc, *domain, line)
+					if s.Created {
+						scripts = append(scripts, s)
+						break
+					}
 				}
-
-				// between tag finder
-				s, found = FindJSinTag(token, line, tokenizer)
-				if found {
-					scripts = append(scripts, s)
-					break
+				if !*disableTag {
+					//Find between script tags
+					sType := GetScriptTagType(token)
+					if sType == "" || strings.Contains(sType, "text/javascript") { //type="text/javascript;version=1.8" before firefox 59 was also accepted
+						tokenizer.Next()
+						s := Script{Line: line, Source: FromText, Content: string(tokenizer.Text())}
+						scripts = append(scripts, s)
+						break
+					}
 				}
 			}
 
-			//Find in attr
-			sL, found := FindJSinAttr(token, line)
-			if found {
-				scripts = append(scripts, sL...)
-				break
+			if !*disableEvent {
+				//Find in attr
+				contents := FindJSEvent(token)
+				if len(contents) > 0 {
+					for i := 0; i < len(contents); i++ {
+						s := Script{Line: line, Source: FromEvent, Content: contents[i]}
+						scripts = append(scripts, s)
+					}
+				}
 			}
 		}
 
