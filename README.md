@@ -4,7 +4,6 @@
   <p><strong>{ <a href="#install">Install it</a> ; <a href="#usage">Use it</a> } </strong></p>
 </div>
 
-----
 
 ## Usage
 Gather all JavaScript code of html webpages from command line.
