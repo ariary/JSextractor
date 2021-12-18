@@ -19,7 +19,7 @@
 
 * Retrieve Javascript from an offline HTML file:
 ```shell
-cat [html_file] | jse
+jse < [html_file]
 ```
 
 * Alternatively, you could gather it following a curl command:
