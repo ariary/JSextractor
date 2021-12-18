@@ -1,11 +1,98 @@
 package extract
 
 import (
+	"JSextractor/pkg/config"
 	"JSextractor/pkg/utils"
+	"bytes"
+	"io"
+	"log"
 	"strings"
 
 	"golang.org/x/net/html"
 )
+
+// Extract all js from a buffer (representing HTML content). begins are the offset psition of byte starting a new line
+func Extract(cfg *config.Config, buf bytes.Buffer, begins []int) (scripts []Script) {
+	var readAll bool
+
+	offset := 0 //snoop line
+	line := 0
+
+	tokenizer := html.NewTokenizer(&buf)
+
+	for {
+		tokenType := tokenizer.Next()
+		offset += len(tokenizer.Raw())
+
+		for i := 0; i < len(begins); i++ {
+			if offset > begins[i] {
+				line = i
+			}
+		}
+		offset += len(tokenizer.Raw())
+
+		switch {
+		case tokenType == html.ErrorToken:
+			err := tokenizer.Err()
+			if err == io.EOF {
+				readAll = true //break statement won't work
+			} else {
+				log.Fatalf("error tokenizing HTML: %v", tokenizer.Err())
+			}
+		case tokenType == html.SelfClosingTagToken:
+			token := tokenizer.Token()
+
+			isScript := token.Data == "script"
+			if isScript {
+				//src finder
+				s, found := FindJSinSrc(token, cfg.GatherSrc, cfg.Url, line)
+				if found {
+					scripts = append(scripts, s)
+				}
+				break
+			}
+
+			//Find in attr
+			sL, found := FindJSinAttr(token, line)
+			if found {
+				scripts = append(scripts, sL...)
+				break
+			}
+		case tokenType == html.StartTagToken:
+			token := tokenizer.Token()
+
+			isScript := token.Data == "script"
+			if isScript {
+				//src finder
+				s, found := FindJSinSrc(token, cfg.GatherSrc, cfg.Url, line)
+				if found {
+					scripts = append(scripts, s)
+					break
+				}
+
+				// between tag finder
+				s, found = FindJSinTag(token, line, tokenizer)
+				if found {
+					scripts = append(scripts, s)
+					break
+				}
+			}
+
+			//Find in attr
+			sL, found := FindJSinAttr(token, line)
+			if found {
+				scripts = append(scripts, sL...)
+				break
+			}
+		}
+
+		//Exit for loop if you have read the whole input
+		if readAll {
+			break
+		}
+	}
+	return scripts
+}
 
 //Search for js in src attribute and return the Script struct associated if found
 func FindJSinSrc(token html.Token, gather bool, domain string, line int) (s Script, found bool) {
