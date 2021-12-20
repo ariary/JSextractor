@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/jroimartin/gocui"
@@ -18,6 +19,20 @@ var First bool
 var Cfg *config.Config
 
 var Scripts []extract.Script
+
+var helpWindowToggle = false
+
+const helpMessage = `
+jse - Help
+----------------------------------------------
+ArrowDown		═ 	Move a line down
+ArrowUp		═ 	Move a line up
+ctrl + u		═ 	Change url
+ctrl + g		═ 	Gather script from source attribute
+ctrl + a		= 	Gather script for all source attributes
+ctrl + c		═ 	Exit
+ctrl + h		═ 	Toggle help message
+`
 
 const (
 	scriptView  = "scripts"
@@ -39,8 +54,6 @@ func (p position) getCoordinate(max int) int {
 type viewPosition struct {
 	x0, y0, x1, y1 position
 }
-
-var helpWindowToggle = false
 
 func (vp viewPosition) getCoordinates(maxX, maxY int) (int, int, int, int) {
 	var x0 = vp.x0.getCoordinate(maxX)
@@ -82,7 +95,8 @@ func SetUrlView(g *gocui.Gui, v *gocui.View) error {
 	if v.Name() != urlView {
 		uv, err := g.SetCurrentView(urlView)
 		if v.Name() == scriptView {
-			v.Highlight = false //disable highlight in script view
+			//v.Highlight = false //disable highlight in script view
+			v.SelBgColor = gocui.ColorCyan
 		}
 		uv.Highlight = true
 		return err
@@ -90,6 +104,16 @@ func SetUrlView(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+//SetScriptView change the current view for the url one
+func SetScriptView(g *gocui.Gui, v *gocui.View) error {
+	if v.Name() == urlView {
+		sv, err := g.SetCurrentView(scriptView)
+		v.Highlight = false //disable highlight in url view
+		sv.SelBgColor = gocui.ColorGreen
+		return err
+	}
+	return nil
+}
 func cursorMovement(d int) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		nIndex := Index + d
@@ -117,7 +141,7 @@ func cursorMovement(d int) func(g *gocui.Gui, v *gocui.View) error {
 	}
 }
 
-//Fetch new url, extract Script structures from result and present them in TUI
+//Fetch new url, extract Script structures from result and present them in TUI = Change current view
 func Fetch(g *gocui.Gui, v *gocui.View) (err error) {
 
 	//JSE restart for a new input
@@ -147,6 +171,7 @@ func Fetch(g *gocui.Gui, v *gocui.View) (err error) {
 	cx, _ := sv.Cursor()
 	sv.SetCursor(cx, 0) //put cursor at the top
 	sv.Highlight = true
+	sv.SelBgColor = gocui.ColorGreen
 
 	cv, err := g.View(contentView)
 	cv.Clear()
@@ -158,9 +183,11 @@ func Fetch(g *gocui.Gui, v *gocui.View) (err error) {
 //GatherSrc gather javascript from src attr
 func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 	s := Scripts[Index]
-	var code string
+	var code, domain string
 	if s.Source == extract.FromSrc {
-		domain := strings.Join(strings.SplitAfter(Cfg.Url, "/")[:3], "")
+		if Cfg.Url != "" {
+			domain = strings.Join(strings.SplitAfter(Cfg.Url, "/")[:3], "")
+		}
 		path := s.Content
 		if path != "" {
 			code, err = extract.GatherJS(path, domain)
@@ -190,9 +217,11 @@ func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 //GatherAll gather javascript from all script with src attr
 func GatherAll(g *gocui.Gui, v *gocui.View) (err error) {
 	for i := 0; i < len(Scripts); i++ {
-		var code string
+		var code, domain string
 		if Scripts[i].Source == extract.FromSrc {
-			domain := strings.Join(strings.SplitAfter(Cfg.Url, "/")[:3], "")
+			if Cfg.Url != "" {
+				domain = strings.Join(strings.SplitAfter(Cfg.Url, "/")[:3], "")
+			}
 			path := Scripts[i].Content
 			if path != "" {
 				code, err = extract.GatherJS(path, domain)
@@ -238,9 +267,17 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
+//toogleHelp show help message
+func toggleHelp(g *gocui.Gui, v *gocui.View) error {
+	helpWindowToggle = !helpWindowToggle
+	return nil
+}
+
 //Keybindings define the key bindings of the TUI
 func Keybindings(g *gocui.Gui) error {
-
+	if err := g.SetKeybinding(scriptView, gocui.KeyCtrlH, gocui.ModNone, toggleHelp); err != nil {
+		log.Panicln(err)
+	}
 	if err := g.SetKeybinding("", gocui.KeyCtrlU, gocui.ModNone, SetUrlView); err != nil {
 		return err
 	}
@@ -260,6 +297,9 @@ func Keybindings(g *gocui.Gui) error {
 		return err
 	}
 	if err := g.SetKeybinding(urlView, gocui.KeyEnter, gocui.ModNone, Fetch); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(urlView, gocui.KeyCtrlZ, gocui.ModNone, SetScriptView); err != nil {
 		return err
 	}
 	return nil
@@ -330,6 +370,23 @@ func Layout(g *gocui.Gui) error {
 			return err
 		}
 		First = false
+	}
+
+	if helpWindowToggle {
+		height := strings.Count(helpMessage, "\n") + 1
+		width := -1
+		for _, line := range strings.Split(helpMessage, "\n") {
+			width = int(math.Max(float64(width), float64(len(line)+2)))
+		}
+		if v, err := g.SetView(helpView, maxX/2-width/2, maxY/2-height/2, maxX/2+width/2, maxY/2+height/2); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+
+			}
+			fmt.Fprintln(v, helpMessage)
+		}
+	} else {
+		g.DeleteView(helpView)
 	}
 
 	return nil
