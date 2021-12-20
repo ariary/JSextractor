@@ -113,10 +113,12 @@ func FindJSinSrc(token html.Token, gather bool, domain string, line int) (s Scri
 		if gather {
 			//retrieve JS from src attribute
 			code, err := GatherJS(src, domain)
+			//fmt.Println(code)
+
 			if err != nil {
-				s = Script{Line: line, Source: FromSrc, Content: code}
-			} else {
 				s = Script{Line: line, Source: FromSrc, Content: src + " (failed to retrieve code by fetching src)"}
+			} else {
+				s = Script{Line: line, Source: FromSrc, Content: code}
 			}
 		} else {
 			s = Script{Line: line, Source: FromSrc, Content: src}

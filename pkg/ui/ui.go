@@ -136,9 +136,9 @@ func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 		if path != "" {
 			code, err = extract.GatherJS(path, domain)
 			if err != nil {
-				s.Content = code
-			} else {
 				s.Content = s.Content + " (failed to retrieve code by fetching src)"
+			} else {
+				s.Content = code
 			}
 		}
 	}
