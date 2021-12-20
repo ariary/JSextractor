@@ -17,7 +17,7 @@
 * [Gather JavaScript](#basic-usage)
 * [Gather JavaScript for further analysis on it](#output-js-code-into-file)
 * [Gather JavaScript from specific source](#restrict-harvest)
-* [Launch Terminal based UI (TUI)](
+* [Launch Terminal based UI (TUI)](https://github.com/ariary/JSextractor/blob/main/README.md#launch-terminal-based-ui-tui)
 
 ### Basic usage
 
@@ -50,10 +50,15 @@ Also, all informative logs (line and source) are output to `stderr` to keep only
 * `-dt`: don't look for inline js of `<script>` tag
 
 ### Launch Terminal based UI (TUI)
-`jse` come w/ a TUI which makes JS browsing/gathering/analysis simpler.
+`jse` comes w/ a TUI which makes JS browsing/gathering/analysis simpler.
  
- From the TUI you browse all the scripts found, gather javascript from `src`attributes (`[CTRL] + G`). You can also change the url (`[CTRL] + U`)
+From the TUI you browse all the scripts found, gather javascript from `src`attributes (`[CTRL] + G`). You can also change the url (`[CTRL] + U`);
+To launch it add `-tui` falg (It is recommended to specify url also):
+```
+curl https://[domain]/path/to/file.html | jse -u  https://[domain]/path/to/file.html -tui
+```
 
+[with 💥](https://github.com/ariary/bang/blob/main/EXAMPLES.md#jse)
 
 ## Install
 
