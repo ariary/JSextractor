@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 var (
@@ -63,17 +62,13 @@ func GetBeginLinesIndex(text []byte) (result []int) {
 }
 
 //Return body of url after performing GET request
-func Fetch(url string) (body string) {
+func Fetch(url string) (body string, err error) {
 	resp, err := http.Get(url)
-	if err != nil {
-		os.Stderr.WriteString("Failed fetching url: " + url)
-	}
+
 	//We Read the response body on the line below.
 	bodyB, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		os.Stderr.WriteString("Failed reading body of GET response from: " + url)
-	}
+
 	//Convert the body to type string
 	body = string(bodyB)
-	return body
+	return body, err
 }

@@ -37,9 +37,13 @@ func (t *Type) String() string {
 	return ""
 }
 
+func ScriptInfoOutput(s Script) string {
+	return utils.Bold(utils.Red(s.Line)) + " : " + utils.Blue(s.Source.String())
+}
+
 func PrintScript(s Script) {
 	l := log.New(os.Stderr, "", 0) //write to stderr to don't have it if you redirect output
-	info := utils.Bold(utils.Red(s.Line)) + " : " + utils.Blue(s.Source.String())
+	info := ScriptInfoOutput(s)
 	l.Println(info)
 	if s.Content != "" {
 		output := s.Content //TODO: pass s.Content to js beautifier

@@ -4,4 +4,7 @@ package config
 type Config struct {
 	Url       string
 	GatherSrc bool
+	SkipSrc   bool
+	SkipEvent bool
+	SkipTag   bool
 }

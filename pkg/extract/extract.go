@@ -43,7 +43,7 @@ func Extract(cfg *config.Config, buf bytes.Buffer, begins []int) (scripts []Scri
 			token := tokenizer.Token()
 
 			isScript := token.Data == "script"
-			if isScript {
+			if isScript && !cfg.SkipSrc {
 				//src finder
 				s, found := FindJSinSrc(token, cfg.GatherSrc, cfg.Url, line)
 				if found {
@@ -53,36 +53,48 @@ func Extract(cfg *config.Config, buf bytes.Buffer, begins []int) (scripts []Scri
 			}
 
 			//Find in attr
-			sL, found := FindJSinAttr(token, line)
-			if found {
-				scripts = append(scripts, sL...)
-				break
+			if !cfg.SkipEvent {
+				sL, found := FindJSinAttr(token, line)
+				if found {
+					scripts = append(scripts, sL...)
+					break
+				}
 			}
 		case tokenType == html.StartTagToken:
 			token := tokenizer.Token()
 
 			isScript := token.Data == "script"
 			if isScript {
+				var s Script
+				var found bool
+
 				//src finder
-				s, found := FindJSinSrc(token, cfg.GatherSrc, cfg.Url, line)
-				if found {
-					scripts = append(scripts, s)
-					break
+				if !cfg.SkipSrc {
+					s, found = FindJSinSrc(token, cfg.GatherSrc, cfg.Url, line)
+					if found {
+						scripts = append(scripts, s)
+						break
+					}
 				}
 
 				// between tag finder
-				s, found = FindJSinTag(token, line, tokenizer)
-				if found {
-					scripts = append(scripts, s)
-					break
+				if !cfg.SkipTag {
+					s, found = FindJSinTag(token, line, tokenizer)
+					if found {
+						scripts = append(scripts, s)
+						break
+					}
 				}
+
 			}
 
 			//Find in attr
-			sL, found := FindJSinAttr(token, line)
-			if found {
-				scripts = append(scripts, sL...)
-				break
+			if !cfg.SkipEvent {
+				sL, found := FindJSinAttr(token, line)
+				if found {
+					scripts = append(scripts, sL...)
+					break
+				}
 			}
 		}
 
@@ -100,8 +112,12 @@ func FindJSinSrc(token html.Token, gather bool, domain string, line int) (s Scri
 	if src != "" {
 		if gather {
 			//retrieve JS from src attribute
-			code := GatherJS(src, domain)
-			s = Script{Line: line, Source: FromSrc, Content: code}
+			code, err := GatherJS(src, domain)
+			if err != nil {
+				s = Script{Line: line, Source: FromSrc, Content: code}
+			} else {
+				s = Script{Line: line, Source: FromSrc, Content: src + " (failed to retrieve code by fetching src)"}
+			}
 		} else {
 			s = Script{Line: line, Source: FromSrc, Content: src}
 		}
@@ -135,17 +151,17 @@ func FindJSinTag(token html.Token, line int, tokenizer *html.Tokenizer) (s Scrip
 	return s, true
 }
 
-//Retrieve JS code from url (src attribut of script tag). use https by default. If url i s a relative path fetch [domain]/[url]
-func GatherJS(url string, domain string) (code string) {
+//Retrieve JS code from url (src attribut of script tag). use https by default. If url is a relative path -> fetch [domain]/[url]
+func GatherJS(url string, domain string) (code string, err error) {
 	switch {
 	case strings.HasPrefix(url, "//"):
-		code = utils.Fetch("https:" + url)
+		code, err = utils.Fetch("https:" + url)
 	case strings.HasPrefix(url, "http"): //handle also https
-		code = utils.Fetch(url)
+		code, err = utils.Fetch(url)
 	default: //realtive
-		code = utils.Fetch(domain + "/" + url)
+		code, err = utils.Fetch(domain + "/" + url)
 	}
-	return code
+	return code, err
 }
 
 //Retrieve JS code in event attributes
