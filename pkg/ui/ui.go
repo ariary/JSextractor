@@ -139,12 +139,18 @@ func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 				s.Content = s.Content + " (failed to retrieve code by fetching src)"
 			} else {
 				s.Content = code
+				s.Source = extract.FromSrcGathered
 			}
 		}
 	}
-
 	Scripts[Index] = s
 
+	//update script view
+	cs, err := g.View(scriptView)
+	cs.Clear()
+	DrawScriptView(g, cs)
+
+	//update content view
 	cv, err := g.View(contentView)
 	cv.Clear()
 	fmt.Fprintln(cv, s.Content)
@@ -165,13 +171,19 @@ func GatherAll(g *gocui.Gui, v *gocui.View) (err error) {
 					Scripts[i].Content += " (failed to retrieve code by fetching src)"
 				} else {
 					Scripts[i].Content = code
+					Scripts[i].Source = extract.FromSrcGathered
 				}
 			}
 		}
 	}
 
-	//update view if current script is from src
-	if Scripts[Index].Source == extract.FromSrc {
+	//update script view
+	cs, err := g.View(scriptView)
+	cs.Clear()
+	DrawScriptView(g, cs)
+
+	//update content view if current script is from src
+	if Scripts[Index].Source == extract.FromSrc || Scripts[Index].Source == extract.FromSrcGathered {
 		cv, err := g.View(contentView)
 		if err != nil {
 			return err

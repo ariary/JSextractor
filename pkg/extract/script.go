@@ -9,16 +9,17 @@ import (
 	"golang.org/x/net/html"
 )
 
+//Type represent the script source type
 type Type int
 
 const (
 	FromText Type = iota
 	FromSrc
+	FromSrcGathered
 	FromEvent
 )
 
-//TODO: Add from "javascript:" in attr
-
+//Script structure containing the source , the code, and the line where it appears in source code
 type Script struct {
 	Source  Type
 	Content string
@@ -31,6 +32,8 @@ func (t *Type) String() string {
 		return "in <script> tag"
 	case FromSrc:
 		return "in src attribute"
+	case FromSrcGathered:
+		return "in src attribute " + utils.Green("✔")
 	case FromEvent:
 		return "in event handlers"
 	}
@@ -51,7 +54,7 @@ func PrintScript(s Script) {
 	}
 }
 
-//Return the value of the "type" attribute for <script> tag
+//GetScriptTagType Return the value of the "type" attribute for <script> tag
 func GetScriptTagType(token html.Token) string {
 	for _, s := range token.Attr {
 		if s.Key == "type" {
