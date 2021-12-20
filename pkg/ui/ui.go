@@ -1,7 +1,10 @@
 package ui
 
 import (
+	"JSextractor/pkg/config"
 	"JSextractor/pkg/extract"
+	"JSextractor/pkg/utils"
+	"bytes"
 	"fmt"
 	"log"
 	"strings"
@@ -12,11 +15,9 @@ import (
 var Index, MaxIndex int
 var First bool
 
-var Data map[int]string
+var Cfg *config.Config
 
 var Scripts []extract.Script
-
-var Url string
 
 const (
 	scriptView  = "scripts"
@@ -76,9 +77,14 @@ func UpdateUiVars() {
 	First = true
 }
 
+//SetUrlView change the current view for the url one
 func SetUrlView(g *gocui.Gui, v *gocui.View) error {
 	if v.Name() != urlView {
-		_, err := g.SetCurrentView(urlView)
+		uv, err := g.SetCurrentView(urlView)
+		if v.Name() == scriptView {
+			v.Highlight = false //disable highlight in script view
+		}
+		uv.Highlight = true
 		return err
 	}
 	return nil
@@ -105,23 +111,46 @@ func cursorMovement(d int) func(g *gocui.Gui, v *gocui.View) error {
 			log.Fatal("failed to get contentView", err)
 		}
 
-		//TO DO: retieve content of script and print it
 		dv.Clear()
 		DrawContentView(g, dv)
 		return nil
 	}
 }
 
-func Fetch(g *gocui.Gui, v *gocui.View) error {
-	//fetching url
-	u, err := v.Line(0)
-	//u, err := v.Word(6, 0)
-	fmt.Fprint(v, u)
-	//update script
+//Fetch new url, extract Script structures from result and present them in TUI
+func Fetch(g *gocui.Gui, v *gocui.View) (err error) {
+
+	//JSE restart for a new input
+	//fetch url
+	Cfg.Url, err = v.Line(0)
+	if err != nil {
+		return err
+	}
+	body, err := utils.Fetch(Cfg.Url)
+	if err != nil {
+		return err
+	}
+	// Extract scripts
+	begins := utils.GetBeginLinesIndex([]byte(body))
+	Scripts = extract.Extract(Cfg, *bytes.NewBuffer([]byte(body)), begins)
 
 	//update ui var first, index etc
-	First = true //si fetch success
-	_, err = g.SetCurrentView(scriptView)
+	UpdateUiVars()
+	First = true //if fetch success
+
+	//Update views
+	v.Highlight = false
+
+	sv, err := g.View(scriptView)
+	sv.Clear()
+	DrawScriptView(g, sv)
+	cx, _ := sv.Cursor()
+	sv.SetCursor(cx, 0) //put cursor at the top
+	sv.Highlight = true
+
+	cv, err := g.View(contentView)
+	cv.Clear()
+	DrawContentView(g, cv)
 
 	return err
 }
@@ -131,7 +160,7 @@ func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 	s := Scripts[Index]
 	var code string
 	if s.Source == extract.FromSrc {
-		domain := strings.Join(strings.SplitAfter(Url, "/")[:3], "")
+		domain := strings.Join(strings.SplitAfter(Cfg.Url, "/")[:3], "")
 		path := s.Content
 		if path != "" {
 			code, err = extract.GatherJS(path, domain)
@@ -163,7 +192,7 @@ func GatherAll(g *gocui.Gui, v *gocui.View) (err error) {
 	for i := 0; i < len(Scripts); i++ {
 		var code string
 		if Scripts[i].Source == extract.FromSrc {
-			domain := strings.Join(strings.SplitAfter(Url, "/")[:3], "")
+			domain := strings.Join(strings.SplitAfter(Cfg.Url, "/")[:3], "")
 			path := Scripts[i].Content
 			if path != "" {
 				code, err = extract.GatherJS(path, domain)
@@ -249,13 +278,13 @@ func DrawContentView(g *gocui.Gui, v *gocui.View) {
 }
 
 func DrawUrlView(g *gocui.Gui, v *gocui.View) error {
-	pv, err := g.View(urlView)
+	uv, err := g.View(urlView)
 	if err != nil {
 		log.Fatal("failed to get pathView", err)
 	}
-	pv.Clear()
+	uv.Clear()
 	//fmt.Fprintf(pv, "\t🌐 %s", url)
-	fmt.Fprint(pv, Url)
+	fmt.Fprint(uv, Cfg.Url)
 	return nil
 }
 
