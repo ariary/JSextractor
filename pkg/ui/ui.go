@@ -126,7 +126,7 @@ func Fetch(g *gocui.Gui, v *gocui.View) error {
 	return err
 }
 
-//Gather javascript from src attr
+//GatherSrc gather javascript from src attr
 func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 	s := Scripts[Index]
 	var code string
@@ -152,33 +152,70 @@ func GatherSrc(g *gocui.Gui, v *gocui.View) (err error) {
 	return err
 }
 
+//GatherAll gather javascript from all script with src attr
+func GatherAll(g *gocui.Gui, v *gocui.View) (err error) {
+	for i := 0; i < len(Scripts); i++ {
+		var code string
+		if Scripts[i].Source == extract.FromSrc {
+			domain := strings.Join(strings.SplitAfter(Url, "/")[:3], "")
+			path := Scripts[i].Content
+			if path != "" {
+				code, err = extract.GatherJS(path, domain)
+				if err != nil {
+					Scripts[i].Content += " (failed to retrieve code by fetching src)"
+				} else {
+					Scripts[i].Content = code
+				}
+			}
+		}
+	}
+
+	//update view if current script is from src
+	if Scripts[Index].Source == extract.FromSrc {
+		cv, err := g.View(contentView)
+		if err != nil {
+			return err
+		}
+		cv.Clear()
+		fmt.Fprintln(cv, Scripts[Index].Content)
+	}
+	return err
+}
+
+//cursorDown: select element from the line below
 func cursorDown(g *gocui.Gui, v *gocui.View) error {
 	return cursorMovement(1)(g, v)
 }
 
+//cursorUp: select element from the line above
 func cursorUp(g *gocui.Gui, v *gocui.View) error {
 	return cursorMovement(-1)(g, v)
 }
 
+//quit: quit the app (TUI)
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
+//Keybindings define the key bindings of the TUI
 func Keybindings(g *gocui.Gui) error {
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlU, gocui.ModNone, SetUrlView); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding(scriptView, gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding(scriptView, gocui.KeyCtrlG, gocui.ModNone, GatherSrc); err != nil {
+	if err := g.SetKeybinding(scriptView, gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding(scriptView, gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding(scriptView, gocui.KeyCtrlG, gocui.ModNone, GatherSrc); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding(scriptView, gocui.KeyCtrlA, gocui.ModNone, GatherAll); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding(urlView, gocui.KeyEnter, gocui.ModNone, Fetch); err != nil {
@@ -187,12 +224,14 @@ func Keybindings(g *gocui.Gui) error {
 	return nil
 }
 
+//DrawScriptView draw the view representing the list of script
 func DrawScriptView(g *gocui.Gui, v *gocui.View) {
 	for i := 0; i < len(Scripts); i++ {
 		fmt.Fprintln(v, extract.ScriptInfoOutput(Scripts[i]))
 	}
 }
 
+//DrawContentView draw the view representing the content of a script (js code)
 func DrawContentView(g *gocui.Gui, v *gocui.View) {
 	fmt.Fprintln(v, Scripts[Index].Content)
 }
@@ -208,6 +247,7 @@ func DrawUrlView(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+//Layout organize the different views
 func Layout(g *gocui.Gui) error {
 	var views = []string{scriptView, contentView, urlView}
 	maxX, maxY := g.Size()
