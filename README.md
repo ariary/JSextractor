@@ -17,7 +17,7 @@
 * [Gather JavaScript](#basic-usage)
 * [Gather JavaScript for further analysis on it](#output-js-code-into-file)
 * [Gather JavaScript from specific source](#restrict-harvest)
-* [Launch Terminal based UI (TUI)](https://github.com/ariary/JSextractor/blob/main/README.md#launch-terminal-based-ui-tui)
+* [Launch Terminal based UI (TUI)](#launch-terminal-based-ui-tui)
 
 ### Basic usage
 
