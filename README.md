@@ -8,12 +8,16 @@
 
 
 ## Demo
-|![demo](https://github.com/ariary/JSextractor/blob/main/img/jse.gif)|
-|:---:|
+|⬇️ TUI demo|
+|:---:| 
+|![demo](https://github.com/ariary/JSextractor/blob/main/img/jse-tui.gif)|
+|➡️ [command line demo](https://github.com/ariary/JSextractor/blob/main/img/jse.gif)|
+
 ## Usage
 * [Gather JavaScript](#basic-usage)
 * [Gather JavaScript for further analysis on it](#output-js-code-into-file)
 * [Gather JavaScript from specific source](#restrict-harvest)
+* [Launch Terminal based UI (TUI)](
 
 ### Basic usage
 
@@ -45,6 +49,11 @@ Also, all informative logs (line and source) are output to `stderr` to keep only
 * `-de`: don't look for js from event handler attributes
 * `-dt`: don't look for inline js of `<script>` tag
 
+### Launch Terminal based UI (TUI)
+`jse` come w/ a TUI which makes JS browsing/gathering/analysis simpler.
+ 
+ From the TUI you browse all the scripts found, gather javascript from `src`attributes (`[CTRL] + G`). You can also change the url (`[CTRL] + U`)
+
 
 ## Install
 
@@ -68,4 +77,5 @@ mv jse $HOME/.local/bin/
 ## Enhancement 🛣️
 
 * Line counter is not working perfectly and must be improved
-* Propose a TUI to browse/expand code (surely List view using `tview`)
+* Configure the TUI, enable to make post request with parameters etc (parameterize requests, Only GET currently)
+* Beautify js? (jse is only for gathering js, maybe it is a better idea to not add other features)
