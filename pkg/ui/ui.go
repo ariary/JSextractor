@@ -178,7 +178,6 @@ func Fetch(g *gocui.Gui, v *gocui.View) (err error) {
 
 	if cURL {
 		//cURL cmd
-		fmt.Println("CUUUURL")
 		body, err = utils.Curl(Cfg.Url)
 	} else {
 		//GET
@@ -198,6 +197,7 @@ func Fetch(g *gocui.Gui, v *gocui.View) (err error) {
 
 	//Update views
 	v.Highlight = false
+	v.FrameColor = gocui.ColorWhite
 
 	sv, err := g.View(scriptView)
 	sv.Clear()

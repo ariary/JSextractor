@@ -81,6 +81,5 @@ func Curl(cmd string) (output string, err error) {
 	curl := exec.Command("curl", args...)
 	out, err := curl.Output()
 	output = string(out)
-	fmt.Print(output)
 	return output, err
 }
