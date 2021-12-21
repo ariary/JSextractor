@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 //suppose we have a correct HTML
@@ -62,7 +62,7 @@ func main() {
 
 		ui.Cfg.Url = cfg.Url
 
-		g, err := gocui.NewGui(gocui.OutputNormal)
+		g, err := gocui.NewGui(gocui.OutputNormal, true)
 		if err != nil {
 			log.Panicln(err)
 		}

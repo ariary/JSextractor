@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
+	"strings"
 )
 
 var (
@@ -71,4 +73,14 @@ func Fetch(url string) (body string, err error) {
 	//Convert the body to type string
 	body = string(bodyB)
 	return body, err
+}
+
+//Return the response of the curl command "cmd"
+func Curl(cmd string) (output string, err error) {
+	args := strings.Split(cmd, " ")[1:] //withdraw curl
+	curl := exec.Command("curl", args...)
+	out, err := curl.Output()
+	output = string(out)
+	fmt.Print(output)
+	return output, err
 }
