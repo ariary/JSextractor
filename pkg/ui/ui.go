@@ -46,7 +46,7 @@ ctrl + c	═ Exit
 ctrl + h	═ Toggle help message
 `
 
-var Method string
+var Method, contentOtherMethod string
 
 var cURL bool
 
@@ -299,6 +299,11 @@ func cursorUp(g *gocui.Gui, v *gocui.View) error {
 //ChangeMethod change the request method
 func ChangeMethod(g *gocui.Gui, v *gocui.View) error {
 	cURL = !cURL
+	contentTmP, _ := v.Line(0) //save current content
+	v.Clear()
+	v.Write([]byte(contentOtherMethod)) //write other content
+	v.EditGotoToEndOfLine()
+	contentOtherMethod = contentTmP //edit other content
 	return DrawMethodView(g, v)
 }
 
