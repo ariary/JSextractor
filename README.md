@@ -82,5 +82,4 @@ mv jse $HOME/.local/bin/
 ## Enhancement 🛣️
 
 * Line counter is not working perfectly and must be improved
-* Configure the TUI, enable to make post request with parameters etc (parameterize requests, Only GET currently)
 * Beautify js? (jse is only for gathering js, maybe it is a better idea to not add other features)
