@@ -36,7 +36,7 @@ func main() {
 	cfg := config.Config{Url: domain, GatherSrc: *gatherSrc, SkipSrc: *skipSrc, SkipEvent: *skipEvent, SkipTag: *skipTag}
 
 	if *gatherSrc && (*url == "") {
-		log.Fatal("You must set domain if you enabled gathering js code from src (-gather-src) (-d flag)")
+		log.Fatal("You must set domain if you enabled gathering js code from src (-gather-src) (-u flag)")
 	}
 
 	//RUN
