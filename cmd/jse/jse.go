@@ -28,10 +28,13 @@ func main() {
 	tui := flag.Bool("tui", false, "terminal User Interface mode. Browse code in a full screen UI")
 	flag.Parse()
 
-	//transform url = https://[domain]/path/to/file -> https://[domain]/
+	//transform url = https://[domain]/path/to/file -> https://[domain]
 	var domain string
 	if *url != "" {
 		domain = strings.Join(strings.SplitAfter(*url, "/")[:3], "")
+		if domain[len(domain)-1:] == "/" {
+			domain = domain[:len(domain)-1]
+		}
 	}
 	cfg := config.Config{Url: domain, GatherSrc: *gatherSrc, SkipSrc: *skipSrc, SkipEvent: *skipEvent, SkipTag: *skipTag}
 
