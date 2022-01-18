@@ -160,8 +160,13 @@ func GatherJS(url string, domain string) (code string, err error) {
 		code, err = utils.Fetch("https:" + url)
 	case strings.HasPrefix(url, "http"): //handle also https
 		code, err = utils.Fetch(url)
-	default: //realtive
-		code, err = utils.Fetch(domain + "/" + url)
+	default: //relative
+		// Dissociate https://toto/resource.js and https://toto//resource.js
+		code, err = utils.Fetch(domain + url) // -> https://[domain]/path/to/.js if src=/path/to/resource.js
+		if err != nil {
+			//try -> https://[domain]/path/to/.js if src=path/to/resource.js
+			code, err = utils.Fetch(domain + "/" + url)
+		}
 	}
 	return code, err
 }
