@@ -58,6 +58,17 @@ To launch it add `-tui` falg (It is recommended to specify url also):
 curl https://[domain]/path/to/file.html | jse -u  https://[domain]/path/to/file.html -tui
 ```
 
+|view|shortcut|description|
+|:---:|:---:|:---:|
+|all|`CTRL+H`|Toogle help windows|
+|all|`CTRL+C`|Exit TUI|
+|scripts|`CTRL+G`|Gather script from source attribute for the current item|
+|scripts|`CTRL+A`|Gather scripts from all source attributes|
+|scripts|`CTRL+U`|Change tu url view|
+|url|`TAB`|Change request method (`GET`or `cURL`)|
+|scripts|`ENTER`|Perform requets|
+|scripts|`CTRL+Z`|Don't perform the requets, go back to scripts view|
+
 [with 💥](https://github.com/ariary/bang/blob/main/EXAMPLES.md#jse)
 
 ## Install
