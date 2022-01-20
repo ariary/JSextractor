@@ -66,8 +66,8 @@ curl https://[domain]/path/to/file.html | jse -u  https://[domain]/path/to/file.
 |scripts|`CTRL+A`|Gather scripts from all source attributes|
 |scripts|`CTRL+U`|Change tu url view|
 |url|`TAB`|Change request method (`GET`or `cURL`)|
-|scripts|`ENTER`|Perform requets|
-|scripts|`CTRL+Z`|Don't perform the requets, go back to scripts view|
+|url|`ENTER`|Perform requets|
+|url|`CTRL+Z`|Don't perform the requets, go back to scripts view|
 
 [with 💥](https://github.com/ariary/bang/blob/main/EXAMPLES.md#jse)
 
