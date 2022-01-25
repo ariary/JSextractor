@@ -6,6 +6,13 @@
   <p><strong><code>{ <a href="#install">Install it</a> ; <a href="#usage">Use it</a> } </code></strong></p>
 </div>
 
+## TL;DR
+Fetch all js code from webpage:
+
+```shell
+export URL=[endpoint]
+curl $URL -s | jse -gather-src $URL
+```
 
 ## Demo
 |⬇️ TUI demo|
