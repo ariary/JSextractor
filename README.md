@@ -11,7 +11,7 @@ Fetch all js code from webpage:
 
 ```shell
 export URL=[endpoint]
-curl $URL -s | jse -gather-src $URL
+curl $URL -s | jse -gather-src -u $URL
 ```
 
 ## Demo
