@@ -103,6 +103,6 @@ mv jse $HOME/.local/bin/
 * Beautify js? (jse is only for gathering js, maybe it is a better idea to not add other features)
 
 
-## 
+## 🎁
 
 The equivalent with WebAssembly: [`wasme`](https://gist.github.com/ariary/b5a6062b89a62ba33734ba4638b0b20b)
