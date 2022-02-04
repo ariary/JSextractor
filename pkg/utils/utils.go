@@ -66,6 +66,9 @@ func GetBeginLinesIndex(text []byte) (result []int) {
 //Return body of url after performing GET request
 func Fetch(url string) (body string, err error) {
 	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
 
 	//We Read the response body on the line below.
 	bodyB, err := ioutil.ReadAll(resp.Body)
