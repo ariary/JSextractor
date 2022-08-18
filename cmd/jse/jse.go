@@ -39,6 +39,13 @@ func main() {
 			{Name: "de", Description: "do not search for javaScript code in event attributes", NoShortName: true},
 			{Name: "dt", Description: "do not search for javaScript code in <script> tag", NoShortName: true},
 		},
+		CheatSheet: quicli.Examples{
+			{Title: "Offline JS retrieval", CommandLine: "jse < [html_file]"},
+			{Title: "Retrieve JS after a curl request", CommandLine: "curl -s [url] | jse"},
+			{Title: "Output js into file", CommandLine: "curl [url] | jse -gather-src -u [url] > output.js"},
+			{Title: "Gather js from script tag with src attribute", CommandLine: "export URL=[url]\ncurl -s $URL -H \"Accept: text/html\" | jse -u $URL -gather-src 2>/dev/null"},
+			{Title: "Only search for in-HTML JS code", CommandLine: "curl [url] | jse -ds"},
+		},
 	})
 
 	// Translate cli -> config
