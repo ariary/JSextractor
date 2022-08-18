@@ -1,11 +1,11 @@
 package extract
 
 import (
-	"JSextractor/pkg/utils"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/ariary/go-utils/pkg/color"
 	"golang.org/x/net/html"
 )
 
@@ -33,7 +33,7 @@ func (t *Type) String() string {
 	case FromSrc:
 		return "in src attribute"
 	case FromSrcGathered:
-		return "in src attribute " + utils.Green("✔")
+		return "in src attribute " + color.Green("✔")
 	case FromEvent:
 		return "in event handlers"
 	}
@@ -41,7 +41,7 @@ func (t *Type) String() string {
 }
 
 func ScriptInfoOutput(s Script) string {
-	return utils.Bold(utils.Red(s.Line)) + " : " + utils.Blue(s.Source.String())
+	return color.Bold(color.Red(s.Line)) + " : " + color.Blue(s.Source.String())
 }
 
 func PrintScript(s Script) {

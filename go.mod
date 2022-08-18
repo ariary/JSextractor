@@ -3,6 +3,8 @@ module JSextractor
 go 1.17
 
 require (
+	github.com/ariary/go-utils v1.0.16
+	github.com/ariary/quicli v0.0.4
 	github.com/awesome-gocui/gocui v1.0.1
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
 )

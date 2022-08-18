@@ -10,6 +10,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/ariary/go-utils/pkg/color"
 	"github.com/awesome-gocui/gocui"
 )
 
@@ -401,7 +402,7 @@ func DrawMethodView(g *gocui.Gui, v *gocui.View) error {
 		mv.FgColor = gocui.ColorBlack
 	}
 
-	fmt.Fprint(mv, utils.Bold(Method))
+	fmt.Fprint(mv, color.Bold(Method))
 	return nil
 }
 
